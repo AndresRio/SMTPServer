@@ -29,7 +29,7 @@ public class Connection implements Runnable, RFC5322 {
 
 		String inputData = null;
 		String outputData = "";
-		
+		String code = "";
 
 		if (mSocket != null) {
 			try {
@@ -47,11 +47,16 @@ public class Connection implements Runnable, RFC5322 {
 
 				while (!mFin && ((inputData = input.readLine()) != null)) {
 					
-					System.out.println("Servidor [Recibido]> " + inputData);
+					
 				
 					
 					// Todo análisis del comando recibido
 					SMTPMessage m = new SMTPMessage(inputData);
+					String comando=m.getCommand();
+					int identificador=m.getCommandId();
+					System.out.println("Comando->"+comando);
+					System.out.println("Identificador->"+identificador);
+					
 
 					// TODO: Máquina de estados del protocolo
 					switch (mEstado) {
