@@ -12,10 +12,9 @@ import ujaen.git.ppt.smtp.SMTPMessage;
 
 public class Connection implements Runnable, RFC5322 {
 
-	public static final int S_HELO = 0;
 
 	protected Socket mSocket;
-	protected int mEstado = S_HELO;;
+	protected int mEstado = S_HELO;
 	private boolean mFin = false;
 
 	public Connection(Socket s) {
@@ -59,9 +58,21 @@ public class Connection implements Runnable, RFC5322 {
 					
 
 					// TODO: Máquina de estados del protocolo
-					switch (mEstado) {
+					switch (identificador) {
 					case S_HELO:
 						
+						break;
+					case S_EHLO:
+						break;
+					case S_MAIL:
+						break;
+					case S_RCPT:
+						break;
+					case S_DATA:
+						break;
+					case S_RSET:
+						break;
+					case S_QUIT:
 						break;
 					default:
 						break;
