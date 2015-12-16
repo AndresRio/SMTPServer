@@ -1,21 +1,24 @@
 package ujaen.git.ppt;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
+
+import ujaen.git.ppt.mail.Mail;
+import ujaen.git.ppt.mail.Mailbox;
 import ujaen.git.ppt.smtp.RFC5321;
 import ujaen.git.ppt.smtp.RFC5322;
 import ujaen.git.ppt.smtp.SMTPMessage;
 
 public class Connection implements Runnable, RFC5322 {
-
-	public static final int S_HELO = 0;
+	Mailbox mb;
+	
+	boolean autenticado=false;
+	String usuariorem="";
+	String usuariodest="";
 
 	protected Socket mSocket;
-	protected int mEstado = S_HELO;;
+	protected int mEstado = S_HELO;
 	private boolean mFin = false;
 
 	public Connection(Socket s) {
@@ -54,17 +57,58 @@ public class Connection implements Runnable, RFC5322 {
 					SMTPMessage m = new SMTPMessage(inputData);
 					String comando=m.getCommand();
 					int identificador=m.getCommandId();
+					String argumento=m.getArguments();
 					System.out.println("Comando->"+comando);
 					System.out.println("Identificador->"+identificador);
+					System.out.println("Argumentos->"+argumento);
+					System.out.println("Recibido->"+inputData);
 					
-
+				    Mail ma= new Mail();
 					// TODO: Máquina de estados del protocolo
-					switch (mEstado) {
+					switch (identificador) {
 					case S_HELO:
+						System.out.println("HELO OK");
+ 						break;
+					case S_EHLO:
+						System.out.println("EHLO OK");
+						break;
+					case S_MAIL:
+						
+						usuariorem=argumento.trim();//recogemos remitente 
+						ma.setMailfrom(argumento); //lo guardamos en la varible Mailfrom de la clase Mail.
 						
 						break;
-					default:
+                       
+					case S_RCPT:
+						
+						usuariodest=argumento.trim();
+						mb = new Mailbox(usuariodest);
+						boolean correcto=mb.checkRecipient(usuariodest); // Comprobamos si el usuario existe.
+                        
+                        if(correcto)
+                        {
+                           System.out.println("OK Usuario reconocido");
+                           ma.setRcptto(usuariodest);// guardamos el usuario destino en la variable Rcptto de la clase Mail.
+                            autenticado=true; // Activamos el indicador de que el usuario se ha identificado correctamente.
+                            break;
+                        }
+                        else
+                        {
+                        	System.out.println("ERR Usuario no reconocido");}
 						break;
+					case S_DATA:
+						if(autenticado)
+						{
+							
+						}
+						break;
+					case S_RSET:
+						System.out.println("RSET OK");
+						break;
+					case S_QUIT:
+						System.out.println("QUIT OK");
+						break;
+					
 					}
 
 					// TODO montar la respuesta

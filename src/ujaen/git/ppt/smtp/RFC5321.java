@@ -28,6 +28,7 @@ public class RFC5321 {
 	public static final int C_RSET = 5;
 	public static final int C_QUIT = 6;
 	
+	
 	/**
 	 * Errors
 	 */

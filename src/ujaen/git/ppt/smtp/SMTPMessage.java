@@ -45,8 +45,8 @@ public class SMTPMessage implements RFC5322 {
 			if (checkCommand(commandParts[0])== RFC5321.C_NOCOMMAND) return true;
 			mArguments=commandParts[1];
 			
-			for (int i = 0; i < commandParts.length; i++) {
-	            System.out.println(commandParts[i]);}
+			/*for (int i = 0; i < commandParts.length; i++) {
+	            System.out.println(commandParts[i]);}*/
 		}else{ 
 		
 			String[] commandParts= data.split(" ");
