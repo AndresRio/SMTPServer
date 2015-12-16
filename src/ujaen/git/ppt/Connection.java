@@ -11,11 +11,15 @@ import ujaen.git.ppt.smtp.RFC5322;
 import ujaen.git.ppt.smtp.SMTPMessage;
 
 public class Connection implements Runnable, RFC5322 {
+<<<<<<< HEAD
 	Mailbox mb;
 	
 	boolean autenticado=false;
 	String usuariorem="";
 	String usuariodest="";
+=======
+
+>>>>>>> origin/master
 
 	protected Socket mSocket;
 	protected int mEstado = S_HELO;
@@ -78,6 +82,7 @@ public class Connection implements Runnable, RFC5322 {
 						ma.setMailfrom(argumento); //lo guardamos en la varible Mailfrom de la clase Mail.
 						
 						break;
+<<<<<<< HEAD
                        
 					case S_RCPT:
 						
@@ -104,6 +109,21 @@ public class Connection implements Runnable, RFC5322 {
 						break;
 					case S_RSET:
 						System.out.println("RSET OK");
+=======
+					case S_EHLO:
+						break;
+					case S_MAIL:
+						break;
+					case S_RCPT:
+						break;
+					case S_DATA:
+						break;
+					case S_RSET:
+						break;
+					case S_QUIT:
+						break;
+					default:
+>>>>>>> origin/master
 						break;
 					case S_QUIT:
 						System.out.println("QUIT OK");

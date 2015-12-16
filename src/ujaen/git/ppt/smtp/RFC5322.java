@@ -12,6 +12,9 @@ public interface RFC5322 {
 	public static final int S_DATA = 4;
 	public static final int S_RSET = 5;
 	public static final int S_QUIT = 6;
+<<<<<<< HEAD
 	
+=======
+>>>>>>> origin/master
 
 }
