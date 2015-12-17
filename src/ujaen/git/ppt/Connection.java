@@ -10,16 +10,20 @@ import ujaen.git.ppt.smtp.RFC5321;
 import ujaen.git.ppt.smtp.RFC5322;
 import ujaen.git.ppt.smtp.SMTPMessage;
 
+
 public class Connection implements Runnable, RFC5322 {
-<<<<<<< HEAD
+
 	Mailbox mb;
-	
+	boolean transaccion=false;
 	boolean autenticado=false;
 	String usuariorem="";
 	String usuariodest="";
-=======
-
->>>>>>> origin/master
+	String argumento2 ="" ;
+	String cabecera="";
+	String Date="Date";
+	String From="From";
+	String Mensaje="Mensaje";
+	
 
 	protected Socket mSocket;
 	protected int mEstado = S_HELO;
@@ -82,7 +86,7 @@ public class Connection implements Runnable, RFC5322 {
 						ma.setMailfrom(argumento); //lo guardamos en la varible Mailfrom de la clase Mail.
 						
 						break;
-<<<<<<< HEAD
+
                        
 					case S_RCPT:
 						
@@ -104,32 +108,55 @@ public class Connection implements Runnable, RFC5322 {
 					case S_DATA:
 						if(autenticado)
 						{
+							transaccion=true;
 							
-						}
+							}
+						else{}
 						break;
 					case S_RSET:
 						System.out.println("RSET OK");
-=======
-					case S_EHLO:
+
+					
 						break;
-					case S_MAIL:
-						break;
-					case S_RCPT:
-						break;
-					case S_DATA:
-						break;
-					case S_RSET:
-						break;
-					case S_QUIT:
-						break;
-					default:
->>>>>>> origin/master
-						break;
+
 					case S_QUIT:
 						System.out.println("QUIT OK");
 						break;
 					
 					}
+					if(transaccion){
+						
+						if (inputData.indexOf(":") > 0) {
+							String[] RecMes = inputData.split(":");
+							cabecera=RecMes[0];
+							argumento2=RecMes[1];
+							cabecera=cabecera.trim();
+							argumento2=argumento2.trim();
+						}
+						switch(cabecera){
+						case "Date":
+							System.out.println("Prueba argumento Date"+ argumento2);
+							break;
+						case "From":
+							System.out.println("Prueba argumento From"+ argumento2);
+							break;
+						case "Subject":
+							System.out.println("Prueba argumento asunto"+ argumento2);
+							break;
+						case "To":
+							System.out.println("Prueba argumento To"+ argumento2);
+							cabecera = Mensaje;
+							break;
+						case "Mensaje":
+							System.out.println("Prueba mensaje recibido: "+ inputData);
+						
+						}
+							
+						
+							}
+						
+					
+					
 
 					// TODO montar la respuesta
 					// El servidor responde con lo recibido
