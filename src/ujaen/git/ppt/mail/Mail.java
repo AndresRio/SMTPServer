@@ -10,6 +10,38 @@ import ujaen.git.ppt.smtp.RFC5322;
 public class Mail implements RFC5322{
 	
 	//String containing the email
+	private String mSubject="";
+	
+	public String getmSubject() {
+		return mSubject;
+	}
+
+	public void setmSubject(String mSubject) {
+		this.mSubject = mSubject;
+	}
+
+
+	private int mId=0;
+	
+	public int getmId() {
+		return mId;
+	}
+
+	public void setmId(int mId) {
+		this.mId = mId;
+	}
+
+
+	private String mFecha="";
+	public String getmFecha() {
+		return mFecha;
+	}
+
+	public void setmFecha(String mFecha) {
+		this.mFecha = mFecha;
+	}
+
+
 	private String mMail="";
 	private String mHost="";
 	private String mMailfrom="";
@@ -24,6 +56,9 @@ public class Mail implements RFC5322{
 	 */
 	public Mail(String fullMail)
 	{
+		mSubject="";
+		mId=0;
+		mFecha="";
 		mMail=fullMail;
 		mSize=mMail.length();
 		mMailfrom="";
@@ -34,6 +69,9 @@ public class Mail implements RFC5322{
 	}
 
 	public Mail() {
+		mSubject="";
+		mId=0;
+		mFecha="";
 		mMail="";
 		mMailfrom="";
 		mRcptto="";
@@ -113,7 +151,7 @@ public class Mail implements RFC5322{
 	
 	public void addMailLine(String line)
 	{
-		mMail=mMail+line+CRLF;
+		mMail+=(line+CRLF);
 	}
 	
 	public void addRecipient(String recipient)

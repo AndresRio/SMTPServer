@@ -12,7 +12,7 @@ import ujaen.git.ppt.smtp.SMTPMessage;
 
 
 public class Connection implements Runnable, RFC5322 {
-
+	Mail ma = new Mail ();
 	Mailbox mb;
 	boolean transaccion=false;
 	boolean autenticado=false;
@@ -20,9 +20,10 @@ public class Connection implements Runnable, RFC5322 {
 	String usuariodest="";
 	String argumento2 ="" ;
 	String cabecera="";
-	String Date="Date";
-	String From="From";
+	String PruebaRecogida="PruebaRecogida";
+	
 	String Mensaje="Mensaje";
+	String mensaje2="";
 	
 
 	protected Socket mSocket;
@@ -37,7 +38,7 @@ public class Connection implements Runnable, RFC5322 {
 
 	@Override
 	public void run() {
-
+		Mail ma= new Mail();
 		String inputData = null;
 		String outputData = "";
 		String code = "";
@@ -66,12 +67,12 @@ public class Connection implements Runnable, RFC5322 {
 					String comando=m.getCommand();
 					int identificador=m.getCommandId();
 					String argumento=m.getArguments();
-					System.out.println("Comando->"+comando);
+					/*System.out.println("Comando->"+comando);
 					System.out.println("Identificador->"+identificador);
 					System.out.println("Argumentos->"+argumento);
-					System.out.println("Recibido->"+inputData);
+					System.out.println("Recibido->"+inputData);*/
 					
-				    Mail ma= new Mail();
+				    
 					// TODO: Máquina de estados del protocolo
 					switch (identificador) {
 					case S_HELO:
@@ -81,7 +82,7 @@ public class Connection implements Runnable, RFC5322 {
 						System.out.println("EHLO OK");
 						break;
 					case S_MAIL:
-						
+						ma=new Mail();
 						usuariorem=argumento.trim();//recogemos remitente 
 						ma.setMailfrom(argumento); //lo guardamos en la varible Mailfrom de la clase Mail.
 						
@@ -133,27 +134,49 @@ public class Connection implements Runnable, RFC5322 {
 							cabecera=cabecera.trim();
 							argumento2=argumento2.trim();
 						}
-						switch(cabecera){
-						case "Date":
-							System.out.println("Prueba argumento Date"+ argumento2);
-							break;
-						case "From":
-							System.out.println("Prueba argumento From"+ argumento2);
-							break;
-						case "Subject":
-							System.out.println("Prueba argumento asunto"+ argumento2);
-							break;
-						case "To":
-							System.out.println("Prueba argumento To"+ argumento2);
-							cabecera = Mensaje;
-							break;
-						case "Mensaje":
-							System.out.println("Prueba mensaje recibido: "+ inputData);
 						
-						}
+						ma.addMailLine(inputData);
+						System.out.println(ma.getMail());
+						
+//						switch(cabecera){
+//						
+//						case "Date":
+//							String EnvioDate="Date:"+argumento2;
+//							ma.addMailLine(EnvioDate);// añadimos linea con el campo Date
+//							
+//							break;
+//						case "From":
+//							String EnvioFrom="From:"+argumento2;
+//							ma.addMailLine(EnvioFrom);// añadimos linea con el campo From
+//							break;
+//						case "Subject":
+//							String EnvioSubject="Subject:"+argumento2;
+//							ma.addMailLine(EnvioSubject);//añadimos linea con el campo Asunto
+//							break;
+//						case "To":
+//							String EnvioTo="To:"+argumento2;
+//							ma.addMailLine(EnvioTo); //añadimos linea con el campo destinatario
+//							cabecera = Mensaje;
+//							break;
+//						case "Mensaje":
+//							String EnvioMensaje=inputData;//recogemos mensaje y lo añadimos
+//							ma.addMailLine(EnvioMensaje);
+//							cabecera = PruebaRecogida;
+//							break;
+//						case "PruebaRecogida":
+//							String MostrarMensaje=ma.getMail();
+//							System.out.println("Prueba de mostrar mensaje: "+MostrarMensaje);
+//							
+//							
+//							break;
+//							
+//						
+//						}
+//							
 							
-						
-							}
+					
+					
+					}
 						
 					
 					
