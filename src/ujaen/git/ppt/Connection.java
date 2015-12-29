@@ -19,7 +19,6 @@ public class Connection implements Runnable, RFC5322 {
 	String usuariorem="";
 	String usuariodest="";
 	String argumento2 ="" ;
-	String cabecera="";
 	String PruebaRecogida="PruebaRecogida";
 	
 	String Mensaje="Mensaje";
@@ -64,24 +63,23 @@ public class Connection implements Runnable, RFC5322 {
 					
 					// Todo análisis del comando recibido
 					SMTPMessage m = new SMTPMessage(inputData);
-					String comando=m.getCommand();
 					int identificador=m.getCommandId();
 					String argumento=m.getArguments();
-					/*System.out.println("Comando->"+comando);
-					System.out.println("Identificador->"+identificador);
-					System.out.println("Argumentos->"+argumento);
-					System.out.println("Recibido->"+inputData);*/
+					
 					
 				    
 					// TODO: Máquina de estados del protocolo
 					switch (identificador) {
 					case S_HELO:
-						System.out.println("HELO OK");
+						outputData = RFC5321.getReply(RFC5321.R_250) + SP + inputData + CRLF;
+						output.write(outputData.getBytes());
+						output.flush();
  						break;
-					case S_EHLO:
-						System.out.println("EHLO OK");
-						break;
+					
 					case S_MAIL:
+						outputData = RFC5321.getReply(RFC5321.R_250) + SP + "Sender: "+argumento + CRLF;
+						output.write(outputData.getBytes());
+						output.flush();
 						ma=new Mail();
 						usuariorem=argumento.trim();//recogemos remitente 
 						ma.setMailfrom(argumento); //lo guardamos en la varible Mailfrom de la clase Mail.
@@ -90,7 +88,9 @@ public class Connection implements Runnable, RFC5322 {
 
                        
 					case S_RCPT:
-						
+						outputData = RFC5321.getReply(RFC5321.R_250) + SP + "Recipient: "+argumento + CRLF;
+						output.write(outputData.getBytes());
+						output.flush();
 						usuariodest=argumento.trim();
 						mb = new Mailbox(usuariodest);
 						boolean correcto=mb.checkRecipient(usuariodest); // Comprobamos si el usuario existe.
@@ -104,88 +104,59 @@ public class Connection implements Runnable, RFC5322 {
                         }
                         else
                         {
+                        	outputData = RFC5321.getReply(RFC5321.R_250) + SP + "Usuario: "+argumento +" no reconocido, vuelva a introducir usuario valido"+ CRLF;
+    						output.write(outputData.getBytes());
+    						output.flush();
                         	System.out.println("ERR Usuario no reconocido");}
 						break;
 					case S_DATA:
 						if(autenticado)
 						{
+							outputData = RFC5321.getReply(RFC5321.R_354) + SP + "  enter mail, end with line containing only ." + CRLF;
+							output.write(outputData.getBytes());
+							output.flush();
 							transaccion=true;
 							
 							}
 						else{}
 						break;
 					case S_RSET:
-						System.out.println("RSET OK");
+						outputData = RFC5321.getReply(RFC5321.R_250) + SP + "Rset OK, introduzca remitente" + CRLF;
+						output.write(outputData.getBytes());
+						output.flush();
+						identificador=2;//regresamos al estado MAIL TO
 
 					
 						break;
 
 					case S_QUIT:
-						System.out.println("QUIT OK");
+						outputData = RFC5321.getReply(RFC5321.R_221) + SP + "Sesion finalizada, si desea mandar otro correo mande HELO" + CRLF;
+						output.write(outputData.getBytes());
+						output.flush();
 						break;
 					
 					}
 					if(transaccion){
 						
-						if (inputData.indexOf(":") > 0) {
-							String[] RecMes = inputData.split(":");
-							cabecera=RecMes[0];
-							argumento2=RecMes[1];
-							cabecera=cabecera.trim();
-							argumento2=argumento2.trim();
-						}
-						
 						ma.addMailLine(inputData);
-						System.out.println(ma.getMail());
-						
-//						switch(cabecera){
-//						
-//						case "Date":
-//							String EnvioDate="Date:"+argumento2;
-//							ma.addMailLine(EnvioDate);// añadimos linea con el campo Date
-//							
-//							break;
-//						case "From":
-//							String EnvioFrom="From:"+argumento2;
-//							ma.addMailLine(EnvioFrom);// añadimos linea con el campo From
-//							break;
-//						case "Subject":
-//							String EnvioSubject="Subject:"+argumento2;
-//							ma.addMailLine(EnvioSubject);//añadimos linea con el campo Asunto
-//							break;
-//						case "To":
-//							String EnvioTo="To:"+argumento2;
-//							ma.addMailLine(EnvioTo); //añadimos linea con el campo destinatario
-//							cabecera = Mensaje;
-//							break;
-//						case "Mensaje":
-//							String EnvioMensaje=inputData;//recogemos mensaje y lo añadimos
-//							ma.addMailLine(EnvioMensaje);
-//							cabecera = PruebaRecogida;
-//							break;
-//						case "PruebaRecogida":
-//							String MostrarMensaje=ma.getMail();
-//							System.out.println("Prueba de mostrar mensaje: "+MostrarMensaje);
-//							
-//							
-//							break;
-//							
-//						
-//						}
-//							
+						//mecanismo de transparencia
+					
+						if(inputData.contains(RFC5322.CRLF+RFC5322.ENDMSG)){//comprobación de que llegue \r\n.\r\n para finalizar correo
+							String newma=ma.getMail();
+							mb.newMail(newma);}//cierre if 1 y creamos el fichero
+						if (inputData.indexOf(".") > 0) {//comprobación de que llegue un punto inicial, seguido de más caracteres
+							String[] aux1 = inputData.split(".");
+							String aux2=aux1[1];
+							if(aux2.length()==inputData.length()-1){
+								 String aux3= aux2.substring(1, inputData.length());//borrar el punto inicial
+								ma = new Mail();
+								 ma.addMailLine(aux3);//pasamos la cadena caracteres sin el . inicial
+								 mb.newMail(ma.getMail());
+							}
 							
-					
-					
-					}
 						
-					
-					
-
-					// TODO montar la respuesta
-					// El servidor responde con lo recibido
-					outputData = RFC5321.getReply(RFC5321.R_220) + SP + inputData + CRLF;
-					output.write(outputData.getBytes());
-					output.flush();
+						}//cierre if 2
+						}	
 
 				}
 				System.out.println("Servidor [Conexión finalizada]> "
