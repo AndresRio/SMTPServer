@@ -3,6 +3,7 @@ package ujaen.git.ppt;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.UUID;//libreria que contiene universally unique identifier
 
 import ujaen.git.ppt.mail.Mail;
 import ujaen.git.ppt.mail.Mailbox;
@@ -16,6 +17,7 @@ public class Connection implements Runnable, RFC5322 {
 	Mailbox mb;
 	boolean transaccion=false;
 	boolean autenticado=false;
+	boolean inicio=false;
 	String usuariorem="";
 	String usuariodest="";
 	String argumento2 ="" ;
@@ -65,8 +67,8 @@ public class Connection implements Runnable, RFC5322 {
 					SMTPMessage m = new SMTPMessage(inputData);
 					int identificador=m.getCommandId();
 					String argumento=m.getArguments();
-					
-					
+					if(identificador==0){inicio=true;}
+					if(inicio){
 				    
 					// TODO: Máquina de estados del protocolo
 					switch (identificador) {
@@ -92,7 +94,7 @@ public class Connection implements Runnable, RFC5322 {
 						output.write(outputData.getBytes());
 						output.flush();
 						usuariodest=argumento.trim();
-						mb = new Mailbox(usuariodest);
+						mb = new Mailbox(usuariodest); //creamos nuevo objeto Mailbox para el usuario recogido.
 						boolean correcto=mb.checkRecipient(usuariodest); // Comprobamos si el usuario existe.
                         
                         if(correcto)
@@ -104,7 +106,7 @@ public class Connection implements Runnable, RFC5322 {
                         }
                         else
                         {
-                        	outputData = RFC5321.getReply(RFC5321.R_250) + SP + "Usuario: "+argumento +" no reconocido, vuelva a introducir usuario valido"+ CRLF;
+                        	outputData = RFC5321.getReply(RFC5321.E_551_USERNOTLOCAL) + SP + "Usuario: "+argumento +" no reconocido, vuelva a introducir usuario valido"+ CRLF;
     						output.write(outputData.getBytes());
     						output.flush();
                         	System.out.println("ERR Usuario no reconocido");}
@@ -115,13 +117,12 @@ public class Connection implements Runnable, RFC5322 {
 							outputData = RFC5321.getReply(RFC5321.R_354) + SP + "  enter mail, end with line containing only ." + CRLF;
 							output.write(outputData.getBytes());
 							output.flush();
-							transaccion=true;
+							transaccion=true;//iniciamos transaccion del mensaje
 							
 							}
-						else{}
 						break;
 					case S_RSET:
-						outputData = RFC5321.getReply(RFC5321.R_250) + SP + "Rset OK, introduzca remitente" + CRLF;
+						outputData = RFC5321.getReply(RFC5321.R_250) + SP + "Rset OK, introduzca  nuevo remitente" + CRLF;
 						output.write(outputData.getBytes());
 						output.flush();
 						identificador=2;//regresamos al estado MAIL TO
@@ -140,29 +141,50 @@ public class Connection implements Runnable, RFC5322 {
 						
 						ma.addMailLine(inputData);
 						//mecanismo de transparencia
-					
+					System.out.println(ma.getMail());
 						if(inputData.contains(RFC5322.CRLF+RFC5322.ENDMSG)){//comprobación de que llegue \r\n.\r\n para finalizar correo
+							String uuid = java.util.UUID.randomUUID().toString();//creamos un identificador único
+							ma.addMailLine("Identificador: "+uuid);//añadimos el identificador al mensaje
+							String newma=ma.getMail();//recogemos el mensaje
+							mb.newMail(newma);}//cierre if 1 y creamos el fichero con el mensaje
+						
+						if(inputData.contains(RFC5322.ENDMSG)){//comprobación de que llegue .\r\n para finalizar correo
+							String uuid = java.util.UUID.randomUUID().toString();//creamos un identificador único
+							ma.addMailLine("Identificador: "+uuid);//añadimos el identificador al mensaje
 							String newma=ma.getMail();
-							mb.newMail(newma);}//cierre if 1 y creamos el fichero
-						if (inputData.indexOf(".") > 0) {//comprobación de que llegue un punto inicial, seguido de más caracteres
+							mb.newMail(newma);}//cierre if 2
+						if(inputData.contains(".")){//comprobación 
+							String uuid = java.util.UUID.randomUUID().toString();//creamos un identificador único
+							ma.addMailLine("Identificador: "+uuid);//añadimos el identificador al mensaje
+							String newma=ma.getMail();
+							mb.newMail(newma);}//cierre if 3
+						
+					/*	if (inputData.indexOf(".") > 0) {//comprobación de que llegue un punto inicial, seguido de más caracteres
 							String[] aux1 = inputData.split(".");
 							String aux2=aux1[1];
-							if(aux2.length()==inputData.length()-1){
-								 String aux3= aux2.substring(1, inputData.length());//borrar el punto inicial
-								ma = new Mail();
-								 ma.addMailLine(aux3);//pasamos la cadena caracteres sin el . inicial
-								 mb.newMail(ma.getMail());
-							}
-							
+							if(aux2.length()==inputData.length()-1){ //comprobamos que el punto inicial iba seguido del resto de mensaje
+							 String aux3= aux2.substring(1, inputData.length());//borrar el punto inicial
+							 ma = new Mail();
+							 String uuid = java.util.UUID.randomUUID().toString();//creamos un identificador único
+							 ma.addMailLine(uuid);//añadimos el identificador al mensaje
+							 ma.addMailLine(aux3);//pasamos la cadena caracteres sin el . inicial
+							 mb.newMail(ma.getMail());
+							 						}
 						
-						}//cierre if 2
+						}//cierre if 4*/
 						}	
-
+					}//cierre if(inicio)
+					else{
+					outputData = RFC5321.getReply(RFC5321.E_503_BADSEQUENCE) + SP + "  Comando incorrecto, por favor introduzca HELO para iniciar envio" + CRLF;
+					output.write(outputData.getBytes());
+					output.flush();
+						
+					}
 				}
 				System.out.println("Servidor [Conexión finalizada]> "
 						+ mSocket.getInetAddress().toString() + ":"
 						+ mSocket.getPort());
-
+				
 				input.close();
 				output.close();
 				mSocket.close();
